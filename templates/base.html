@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Digital-Chat</title>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+<style>
+@font-face {
+    font-family: 'PixelFont';
+    src: url('../static/font/Uranus_Pixel_11Px.eot'); /* EOT for IE */
+    src: url('../static/font/Uranus_Pixel_11Px.eot?#iefix') format('embedded-opentype'), /* EOT fix for IE */
+         url('../static/font/Uranus_Pixel_11Px.woff2') format('woff2'), /* Modern browsers */
+         url('../static/font/Uranus_Pixel_11Px.woff') format('woff'), /* Modern browsers */
+         url('../static/font/Uranus_Pixel_11Px.ttf') format('truetype'), /* TTF for legacy browsers */
+         url('../static/font/Uranus_Pixel_11Px.svg#PixelFont') format('svg'); /* SVG for older iOS devices */
+    font-weight: normal;
+    font-style: normal;
+}
+
+    /* 全局样式 */
+    body, html {
+        margin: 0;
+        padding: 0;
+        font-family: 'PixelFont', monospace;
+        overflow-x: hidden;
+    }
+
+    /* 渐变背景 */
+    .background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(45deg, #fce7f3, #dbeafe, #ede9fe);
+        z-index: -2;
+    }
+
+    /* 像素风格背景图案 */
+    .background-pattern {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23f472b6' fill-opacity='0.2'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        image-rendering: pixelated;
+        z-index: -1;
+    }
+
+    /* 内容容器 */
+    .content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+        min-height: 100vh;
+        padding-top: 60px; /* 为固定顶部栏留出空间 */
+    }
+
+    /* 固定顶部栏 */
+    .top-bar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 60px;
+        background-color: rgba(255, 255, 255, 0.8);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 0 20px;
+        box-sizing: border-box;
+        z-index: 1000;
+    }
+
+    /* 标志样式 */
+    .logo {
+        font-size: 1.2rem;
+        color: #8b5cf6;
+        font-family: 'Press Start 2P', cursive;
+    }
+
+    /* 顶部栏按钮样式 */
+    .top-bar-buttons {
+        display: flex;
+        gap: 1rem;
+    }
+
+    .top-bar-button {
+        font-family: 'PixelFont';
+        padding: 0.5rem 1rem;
+        border: none;
+        color: white;
+        cursor: pointer;
+        image-rendering: pixelated;
+        transition: transform 0.1s, box-shadow 0.1s;
+        font-size: 0.8rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .top-bar-button::after {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAgAAAAICAYAAADED76LAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAOklEQVQYlWNgQAL/////z4AJGBkZGRjRJZmQOQxoEgxoEgxoEgxoEgxoEgxoEgxoEgxoEgxoEgxoEgwAoOwsB3eBJvIAAAAASUVORK5CYII=');
+        background-size: 8px 8px;
+        opacity: 0.1;
+        pointer-events: none;
+    }
+
+    .top-bar-button:hover {
+        transform: translateY(-2px);
+    }
+
+    .top-bar-button:active {
+        transform: translateY(0);
+    }
+
+    .button-home {
+        background-color: #10b981;
+        box-shadow: 0 4px 0 #059669;
+    }
+
+    .button-login {
+        background-color: #ec4899;
+        box-shadow: 0 4px 0 #db2777;
+    }
+
+    .button-register {
+        background-color: #8b5cf6;
+        box-shadow: 0 4px 0 #7c3aed;
+    }
+
+    /* 公告栏样式 */
+    .announcement {
+        height: calc(100vh - 60px);
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 2rem;
+        box-sizing: border-box;
+    }
+
+    .announcement-content {
+        text-align: center;
+        max-width: 40rem;
+    }
+
+    .welcome-text {
+        color: #4b5563;
+        font-size: 1.5rem;
+        margin-bottom: 2rem;
+    }
+
+    .pixelchat-logo {
+        font-size: 4rem;
+        color: #8b5cf6;
+        margin-bottom: 2rem;
+        letter-spacing: 0.5rem;
+        font-family: 'Press Start 2P', cursive;
+    }
+
+    .designer-info {
+        color: #4b5563;
+        font-size: 1rem;
+        margin-top: 2rem;
+    }
+
+    /* 功能介绍样式 */
+    .features {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 4rem 2rem;
+    }
+
+    .feature {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+        display: flex;
+        align-items: center;
+        margin-bottom: 4rem;
+        max-width: 48rem;
+        width: 100%;
+    }
+
+    .feature-image {
+        width: 200px;
+        height: 200px;
+        background-color: rgba(243, 232, 255, 0.8);
+        border-radius: 1rem;
+        margin-right: 2rem;
+    }
+
+    .feature-text {
+        flex: 1;
+        background-color: rgba(255, 255, 255, 0.8);
+        padding: 1rem;
+        border-radius: 0.5rem;
+    }
+
+    .feature-title {
+        font-size: 1.25rem;
+        color: #8b5cf6;
+        margin-bottom: 1rem;
+    }
+
+    .feature-description {
+        font-size: 0.875rem;
+        color: #4b5563;
+    }
+
+    /* 像素化边框 */
+    .pixel-border {
+        border: 4px solid transparent;
+        border-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAACXBIWXMAAAsTAAALEwEAmpwYAAAAjklEQVQ4jWNgGAUkg/9kYpg4TDz+HwWjS8LE0cXR5ZDFyDIIQxx/xLDESTUAJg7CowbAJEkyAKYRhkkyACaJjkkKA5g4MiZZMyihQrIXYHx0Q0jyAkwjDJPkBZg4CJMUiTBxECbZAJg4CJNsAEwcGRNtAEwcGWOoQRfHUIMujm4IVhfAxNHFYWIUGQAAJWHPOroVGb0AAAAASUVORK5CYII=') 4;
+        border-image-repeat: repeat;
+        padding: 10px;
+    }
+
+    /* 响应式设计 */
+    @media (max-width: 639px) {
+        .top-bar {
+            flex-direction: column;
+            height: auto;
+            padding: 1rem;
+        }
+
+        .top-bar-buttons {
+            margin-top: 1rem;
+        }
+
+        .content {
+            padding-top: 120px;
+        }
+
+        .feature {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .feature-image {
+            margin-right: 0;
+            margin-bottom: 1rem;
+        }
+
+        .welcome-text {
+            font-size: 1.2rem;
+        }
+
+        .pixelchat-logo {
+            font-size: 3rem;
+        }
+
+        .designer-info {
+            font-size: 0.8rem;
+        }
+    }
+</style>
+</head>
+<body>
+<!-- 背景层 -->
+<div class="background"></div>
+<div class="background-pattern"></div>
+
+<!-- 固定顶部栏 -->
+<div class="top-bar">
+    <div class="logo">PixelChat</div>
+    <div class="top-bar-buttons">
+        <button class="top-bar-button button-home" onclick="location.href='/'">首页</button>
+        <button class="top-bar-button button-login" onclick="location.href='/login'">登录</button>
+        <button class="top-bar-button button-register" onclick="location.href='/register'">注册</button>
+    </div>
+</div>
+
+<!-- 主要内容区域 -->
+<div class="content pixel-border" id="content">
+    <!-- 公告栏 -->
+    <div class="announcement">
+        <div class="announcement-content">
+            <div class="welcome-text">欢迎使用</div>
+            <div class="pixelchat-logo">PixelChat</div>
+            <div class="designer-info">陈逸楠设计</div>
+        </div>
+    </div>
+
+    <!-- 功能介绍 -->
+    <div class="features">
+        <div class="feature">
+            <div class="feature-image"></div>
+            <div class="feature-text">
+                <div class="feature-title">丰富的表情符号</div>
+                <div class="feature-description">使用多样化的表情符号，让您的聊天更加生动有趣。无论是喜怒哀乐，还是各种场景，都能找到合适的表情来表达。</div>
+            </div>
+        </div>
+        <div class="feature">
+            <div class="feature-image"></div>
+            <div class="feature-text">
+                <div class="feature-title">即时消息发送</div>
+                <div class="feature-description">享受流畅的即时通讯体验。无论您是发送文字、图片还是文件，都能快速传达到对方手中，让沟通无障碍。</div>
+            </div>
+        </div>
+        <div class="feature">
+            <div class="feature-image"></div>
+            <div class="feature-text">
+                <div class="feature-title">轻松添加好友</div>
+                <div class="feature-description">通过多种方式添加好友，轻松扩展您的社交圈。支持搜索、扫码、附近的人等多种添加方式，让您结识更多志同道合的朋友。</div>
+            </div>
+        </div>
+        <div class="feature">
+            <div class="feature-image"></div>
+            <div class="feature-text">
+                <div class="feature-title">更多精彩功能</div>
+                <div class="feature-description">我们正在不断开发新的功能，以提供更好的用户体验。敬请期待更多令人兴奋的新特性！</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // 控制功能介绍的渐显效果
+    function isElementInViewport(el) {
+        var rect = el.getBoundingClientRect();
+        return (
+            rect.top >= 0 &&
+            rect.left >= 0 &&
+            rect.bottom <= (window.innerHeight || document.documentElement.clientHeight) &&
+            rect.right <= (window.innerWidth || document.documentElement.clientWidth)
+        );
+    }
+
+    function handleScroll() {
+        var features = document.querySelectorAll('.feature');
+        features.forEach(function(feature) {
+            if (isElementInViewport(feature)) {
+                feature.style.opacity = '1';
+                feature.style.transform = 'translateY(0)';
+            }
+        });
+    }
+
+    // 添加滚动和调整大小的事件监听器
+    window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', handleScroll);
+    handleScroll();
+</script>
+</body>
+</html>
